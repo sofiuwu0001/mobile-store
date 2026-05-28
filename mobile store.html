@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MobileStore | Minimal v2.0 (Corregido)</title>
+    <title>Mobile Store</title>
     <style>
         :root {
             --accent: #2563eb;
@@ -23,7 +23,6 @@
             color: var(--dark);
         }
 
-        /* Estructura Simplificada */
         header {
             background: white;
             padding: 1rem 5%;
@@ -34,6 +33,13 @@
             position: sticky;
             top: 0;
             z-index: 100;
+        }
+
+        .title {
+            margin: 0;
+            color: var(--accent);
+            font-size: 1.5rem;
+            font-weight: bold;
         }
 
         .search-bar {
@@ -50,7 +56,6 @@
             border-color: var(--accent);
         }
 
-        /* Sistema de Filtros */
         .filters {
             display: flex;
             justify-content: center;
@@ -80,7 +85,6 @@
             border-color: var(--dark);
         }
 
-        /* Grid de Productos */
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -108,13 +112,22 @@
         .card img {
             width: 100%;
             height: 180px;
-            object-fit: contain; /* Cambiado de cover a contain para no cortar las imágenes de productos */
+            object-fit: contain;
             border-radius: 8px;
             margin-bottom: 10px;
         }
 
-        .card h3 { margin: 10px 0 5px; font-size: 1.1rem; }
-        .card p { font-size: 0.85rem; color: #64748b; flex-grow: 1; margin: 0; }
+        .card h3 { 
+            margin: 10px 0 5px; 
+            font-size: 1.1rem; 
+        }
+
+        .card p { 
+            font-size: 0.85rem; 
+            color: #64748b; 
+            flex-grow: 1; 
+            margin: 0; 
+        }
 
         .price-row {
             display: flex;
@@ -138,7 +151,6 @@
             background: #1d4ed8;
         }
 
-        /* Carrito Mejorado */
         #cart-panel {
             position: fixed;
             right: -380px;
@@ -156,7 +168,13 @@
 
         #cart-panel.open { right: 0; }
 
-        .cart-items { flex-grow: 1; overflow-y: auto; margin: 20px 0; padding-right: 10px; }
+        .cart-items { 
+            flex-grow: 1; 
+            overflow-y: auto; 
+            margin: 20px 0; 
+            padding-right: 10px; 
+        }
+
         .cart-item {
             display: flex;
             justify-content: space-between;
@@ -192,20 +210,52 @@
             padding: 40px;
             color: #64748b;
         }
+
+        .cart-toggle-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .cart-badge {
+            background: var(--accent);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        @media (max-width: 600px) {
+            header {
+                flex-direction: column;
+                gap: 15px;
+            }
+            .search-bar {
+                width: 100%;
+            }
+            #cart-panel {
+                width: 100%;
+                right: -100%;
+            }
+        }
     </style>
 </head>
 <body>
 
 <header>
-    <h2 style="margin:0; color: var(--accent);">M-Store</h2>
-    <input type="text" id="searchInput" class="search-bar" placeholder="Buscar por modelo o marca..." oninput="handleSearch(event)">
-    <button onclick="toggleCart()" style="background:none; border:none; cursor:pointer; font-size: 1.2rem; display: flex; align-items: center; gap: 5px;">
-        🛒 <strong id="cart-counter" style="background: var(--accent); color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.9rem;">0</strong>
+    <div class="title">Mobile Store</div>
+    <input type="text" id="searchInput" class="search-bar" placeholder="Buscar por modelo o marca...">
+    <button id="cartToggleBtn" class="cart-toggle-btn">
+        🛒 <span id="cart-counter" class="cart-badge">0</span>
     </button>
 </header>
 
-<div class="filters" id="brand-filters">
-    </div>
+<div class="filters" id="brand-filters"></div>
 
 <main class="grid" id="main-grid"></main>
 
@@ -223,39 +273,30 @@
             <strong>Total (+IVA 16%):</strong>
             <strong id="cart-total" style="color: var(--accent);">$0.00</strong>
         </div>
-        <button class="cart-btn" onclick="checkout()">Finalizar Compra</button>
-        <button onclick="toggleCart()" style="border:none; background:none; width:100%; margin-top:10px; cursor:pointer; color:#ef4444; padding: 8px;">Cerrar Panel</button>
+        <button class="cart-btn" id="checkoutBtn">Finalizar Compra</button>
+        <button id="closeCartBtn" style="border:none; background:none; width:100%; margin-top:10px; cursor:pointer; color:#ef4444; padding: 8px;">Cerrar Panel</button>
     </div>
 </div>
 
 <script>
-    // Helper para generar imágenes dinámicas con el nombre del modelo
-    const getImg = (text) => `https://placehold.co/400x300/f8fafc/2563eb?text=${encodeURIComponent(text)}`;
-
     const products = [
-        // Apple
         { id: 1, brand: 'Apple', model: 'iPhone 15 Pro Max', price: 1199, cat: 'High', img: 'https://images.unsplash.com/photo-1696446701796-da61225697cc?q=80&w=400&auto=format&fit=crop' },
         { id: 2, brand: 'Apple', model: 'iPhone 15 Pro', price: 999, cat: 'High', img: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?q=80&w=400&auto=format&fit=crop' },
         { id: 3, brand: 'Apple', model: 'iPhone 15', price: 799, cat: 'High', img: 'https://images.unsplash.com/photo-1616348436168-de43ad0db179?q=80&w=400&auto=format&fit=crop' },
         { id: 4, brand: 'Apple', model: 'iPhone 14', price: 699, cat: 'Mid', img: 'https://images.unsplash.com/photo-1601784551446-20c9e096b31a?q=80&w=400&auto=format&fit=crop' },
-        // Samsung
         { id: 5, brand: 'Samsung', model: 'Galaxy S24 Ultra', price: 1299, cat: 'High', img: 'https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?q=80&w=400&auto=format&fit=crop' },
         { id: 6, brand: 'Samsung', model: 'Galaxy S24', price: 799, cat: 'High', img: 'https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?q=80&w=400&auto=format&fit=crop' },
         { id: 7, brand: 'Samsung', model: 'Galaxy Z Fold 5', price: 1799, cat: 'Fold', img: 'https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?q=80&w=400&auto=format&fit=crop' },
         { id: 8, brand: 'Samsung', model: 'Galaxy Z Flip 5', price: 999, cat: 'Fold', img: 'https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?q=80&w=400&auto=format&fit=crop' },
         { id: 9, brand: 'Samsung', model: 'Galaxy A54', price: 449, cat: 'Mid', img: 'https://images.unsplash.com/photo-1678911820864-e2c567c655d7?q=80&w=400&auto=format&fit=crop' },
-        // Google
         { id: 10, brand: 'Google', model: 'Pixel 8 Pro', price: 999, cat: 'High', img: 'https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?q=80&w=400&auto=format&fit=crop' },
         { id: 11, brand: 'Google', model: 'Pixel 8', price: 699, cat: 'High', img: 'https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?q=80&w=400&auto=format&fit=crop' },
         { id: 12, brand: 'Google', model: 'Pixel 7a', price: 499, cat: 'Mid', img: 'https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?q=80&w=400&auto=format&fit=crop' },
-        // Xiaomi / Poco
         { id: 13, brand: 'Xiaomi', model: '14 Ultra', price: 1099, cat: 'High', img: 'https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?q=80&w=400&auto=format&fit=crop' },
         { id: 14, brand: 'Xiaomi', model: 'Redmi Note 13 Pro', price: 349, cat: 'Mid', img: 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?q=80&w=400&auto=format&fit=crop' },
         { id: 15, brand: 'Poco', model: 'X6 Pro', price: 349, cat: 'Mid', img: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=400&auto=format&fit=crop' },
-        // Motorola
         { id: 16, brand: 'Motorola', model: 'Razr 40 Ultra', price: 899, cat: 'Fold', img: 'https://images.unsplash.com/photo-1678911820864-e2c567c655d7?q=80&w=400&auto=format&fit=crop' },
         { id: 17, brand: 'Motorola', model: 'Edge 40 Neo', price: 399, cat: 'Mid', img: 'https://images.unsplash.com/photo-1601784551446-20c9e096b31a?q=80&w=400&auto=format&fit=crop' },
-        // Otros
         { id: 18, brand: 'Nothing', model: 'Phone (2)', price: 649, cat: 'Mid', img: 'https://images.unsplash.com/photo-1691443427218-971775f0a07e?q=80&w=400&auto=format&fit=crop' },
         { id: 19, brand: 'Asus', model: 'Zenfone 10', price: 699, cat: 'High', img: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=400&auto=format&fit=crop' },
         { id: 20, brand: 'Sony', model: 'Xperia 5 V', price: 899, cat: 'High', img: 'https://images.unsplash.com/photo-1523206489230-c012c64b2b48?q=80&w=400&auto=format&fit=crop' },
@@ -268,34 +309,35 @@
     let cart = [];
     let currentBrand = 'Todos';
     let searchTerm = '';
-    const brands = ['Todos', ...new Set(products.map(p => p.brand))];
 
-    // Inicializar Interfaz
-    function init() {
-        renderFilters();
-        applyFilters();
-    }
-
-    function renderFilters() {
+    document.addEventListener('DOMContentLoaded', () => {
+        const brands = ['Todos', ...new Set(products.map(p => p.brand))];
         const filterContainer = document.getElementById('brand-filters');
-        filterContainer.innerHTML = brands.map(b => 
-            `<button class="chip ${b === currentBrand ? 'active' : ''}" onclick="setFilter(event, '${b}')">${b}</button>`
-        ).join('');
-    }
+        
+        brands.forEach(b => {
+            const btn = document.createElement('button');
+            btn.className = `chip ${b === currentBrand ? 'active' : ''}`;
+            btn.textContent = b;
+            btn.addEventListener('click', (e) => {
+                currentBrand = b;
+                document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+                e.target.classList.add('active');
+                applyFilters();
+            });
+            filterContainer.appendChild(btn);
+        });
 
-    // Lógica Combinada de Búsqueda y Filtro
-    function handleSearch(event) {
-        searchTerm = event.target.value.toLowerCase();
-        applyFilters();
-    }
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            searchTerm = e.target.value.toLowerCase();
+            applyFilters();
+        });
 
-    function setFilter(event, brand) {
-        currentBrand = brand;
-        // Actualizar visualmente el botón activo
-        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-        event.target.classList.add('active');
+        document.getElementById('cartToggleBtn').addEventListener('click', toggleCart);
+        document.getElementById('closeCartBtn').addEventListener('click', toggleCart);
+        document.getElementById('checkoutBtn').addEventListener('click', checkout);
+
         applyFilters();
-    }
+    });
 
     function applyFilters() {
         const filtered = products.filter(p => {
@@ -308,42 +350,53 @@
 
     function renderGrid(data) {
         const grid = document.getElementById('main-grid');
+        grid.innerHTML = '';
         
         if (data.length === 0) {
-            grid.innerHTML = `<div class="empty-state"><h3>No se encontraron productos</h3><p>Intenta con otros términos de búsqueda o filtros.</p></div>`;
+            grid.innerHTML = `<div class="empty-state"><h3>No se encontraron productos</h3></div>`;
             return;
         }
 
-        grid.innerHTML = data.map(p => `
-            <div class="card">
-                <img src="${p.img}" alt="${p.model}">
+        data.forEach(p => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `
+                <img src="${p.img}" alt="${p.model}" loading="lazy">
                 <span style="font-size:0.75rem; color:var(--accent); font-weight:bold; text-transform: uppercase;">${p.brand}</span>
                 <h3>${p.model}</h3>
                 <p>Categoría: ${p.cat}</p>
                 <div class="price-row">
                     <span style="font-weight:bold; font-size: 1.2rem;">$${p.price}</span>
-                    <button class="btn-add" onclick="addToCart(${p.id})">Añadir</button>
+                    <button class="btn-add" data-id="${p.id}">Añadir</button>
                 </div>
-            </div>
-        `).join('');
+            `;
+            grid.appendChild(card);
+        });
+
+        document.querySelectorAll('.btn-add').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                addToCart(parseInt(e.target.getAttribute('data-id')));
+            });
+        });
     }
 
-    // Lógica del Carrito
     function addToCart(id) {
         const item = products.find(p => p.id === id);
-        cart.push(item);
-        updateCartUI();
-        
-        // Pequeño feedback visual abriendo el carrito temporalmente
-        if(!document.getElementById('cart-panel').classList.contains('open')){
-            toggleCart();
-            setTimeout(toggleCart, 1500);
+        if (item) {
+            cart.push(item);
+            updateCartUI();
+            const panel = document.getElementById('cart-panel');
+            if (!panel.classList.contains('open')) {
+                toggleCart();
+                setTimeout(toggleCart, 1500);
+            }
         }
     }
 
     function updateCartUI() {
         document.getElementById('cart-counter').innerText = cart.length;
         const list = document.getElementById('cart-list');
+        list.innerHTML = '';
         
         if (cart.length === 0) {
             list.innerHTML = `<p style="text-align:center; color:#64748b; margin-top: 50%;">El carrito está vacío</p>`;
@@ -352,18 +405,27 @@
             return;
         }
 
-        list.innerHTML = cart.map((item, index) => `
-            <div class="cart-item">
+        cart.forEach((item, index) => {
+            const cartItem = document.createElement('div');
+            cartItem.className = 'cart-item';
+            cartItem.innerHTML = `
                 <div class="cart-item-info">
                     <strong>${item.model}</strong>
                     <span style="font-size: 0.8rem; color: #64748b;">${item.brand}</span>
                 </div>
                 <div style="display:flex; align-items:center; gap:10px;">
                     <span>$${item.price}</span>
-                    <button onclick="removeFromCart(${index})" style="border:none; background:#fee2e2; color:#ef4444; border-radius:4px; cursor:pointer; width: 24px; height: 24px; display:flex; align-items:center; justify-content:center; font-weight:bold;">×</button>
+                    <button class="remove-btn" data-index="${index}" style="border:none; background:#fee2e2; color:#ef4444; border-radius:4px; cursor:pointer; width: 24px; height: 24px; display:flex; align-items:center; justify-content:center; font-weight:bold;">×</button>
                 </div>
-            </div>
-        `).join('');
+            `;
+            list.appendChild(cartItem);
+        });
+
+        document.querySelectorAll('.remove-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                removeFromCart(parseInt(e.target.getAttribute('data-index')));
+            });
+        });
 
         const subtotal = cart.reduce((acc, item) => acc + item.price, 0);
         document.getElementById('cart-subtotal').innerText = `$${subtotal.toFixed(2)}`;
@@ -380,7 +442,7 @@
     }
 
     function checkout() {
-        if(cart.length === 0) {
+        if (cart.length === 0) {
             alert("El carrito está vacío. Agrega productos antes de finalizar.");
             return;
         }
@@ -389,9 +451,6 @@
         updateCartUI();
         toggleCart();
     }
-
-    // Ejecutar al cargar la página
-    init();
 </script>
 </body>
 </html>
